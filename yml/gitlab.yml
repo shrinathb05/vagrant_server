@@ -1,0 +1,85 @@
+stages:
+  - clean_workspace
+  - download_artifacts
+  - backup
+  - deploy
+  - service_status
+  - clean_workspace_post_deployment
+
+variables:
+  ZIP_FILE_URL: "https://www.tooplate.com/zip-templates/2129_crispy_kitchen.zip"
+  DOWNLOAD_PATH: "/home/vagrant/Git-Lab/web_pages"
+  NGINX_DOC_ROOT: "/var/www/html"
+  BACKUP_DIR: "/var/www/html_backup"
+  TEMP_DIR: "/tmp/webpages"
+
+clean_workspace:
+  stage: clean_workspace
+  tags:
+    - deploy-runner
+  script:
+    - echo "Cleaning working directory..."
+    - sudo rm -rf $DOWNLOAD_PATH/*
+    - sudo rm -rf $TEMP_DIR/*
+    - echo "Working directory cleaned successfully."
+
+download_artifacts:
+  stage: download_artifacts
+  tags:
+    - deploy-runner
+  script:
+    - echo "Downloading ZIP file from $ZIP_FILE_URL..."
+    - mkdir -p $DOWNLOAD_PATH
+    - wget -P $DOWNLOAD_PATH $ZIP_FILE_URL
+    - echo "ZIP file downloaded to $DOWNLOAD_PATH."
+
+backup:
+  stage: backup
+  tags:
+    - deploy-runner
+  script:
+    - echo "Taking backup of existing files in $NGINX_DOC_ROOT..."
+    - if [ "$(ls -A $NGINX_DOC_ROOT 2>/dev/null)" ]; then
+        sudo mkdir -p $BACKUP_DIR;
+        TIMESTAMP=$(date +%Y%m%d%H%M%S);
+        BACKUP_TIMESTAMP_DIR="$BACKUP_DIR/backup_$TIMESTAMP";
+        sudo mkdir -p "$BACKUP_TIMESTAMP_DIR";
+        sudo cp -r "$NGINX_DOC_ROOT"/* "$BACKUP_TIMESTAMP_DIR/";
+        echo "Backup completed at $BACKUP_TIMESTAMP_DIR.";
+      else
+        echo "No files to back up in $NGINX_DOC_ROOT.";
+      fi
+
+deploy:
+  stage: deploy
+  tags:
+    - deploy-runner
+  script:
+    - echo "Deploying files..."
+    - mkdir -p $TEMP_DIR
+    - ZIP_FILE_NAME=$(basename $ZIP_FILE_URL)
+    - ZIP_FILE_PATH="$DOWNLOAD_PATH/$ZIP_FILE_NAME"
+    - ZIP_FILE_BASE="${ZIP_FILE_NAME%.zip}"
+    - unzip -o $ZIP_FILE_PATH -d $TEMP_DIR
+    - sudo rm -rf $NGINX_DOC_ROOT/*
+    - sudo cp -r $TEMP_DIR/$ZIP_FILE_BASE/* $NGINX_DOC_ROOT
+    - echo "Deployment successful! Files deployed to $NGINX_DOC_ROOT."
+
+service_status:
+  stage: service_status
+  tags:
+    - deploy-runner
+  script:
+    - echo "Checking Nginx service status..."
+    - sudo systemctl restart nginx
+    - sudo systemctl status nginx || echo "Failed to restart Nginx. Please check the service."
+
+clean_workspace_post_deployment:
+  stage: clean_workspace_post_deployment
+  tags:
+    - deploy-runner
+  script:
+    - echo "Cleaning up working directory post-deployment..."
+    - sudo rm -rf $DOWNLOAD_PATH/*
+    - sudo rm -rf $TEMP_DIR/*
+    - echo "Working directory cleaned successfully after deployment."

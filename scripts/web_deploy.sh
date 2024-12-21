@@ -1,10 +1,10 @@
 #!/bin/bash
 set -x
+
 package_installation() {
-	sudo apt update -y
-	sleep 3
+    sudo apt update -y
+    sleep 3
 }
-sleep 3s
 
 project_setup() {
 
@@ -44,16 +44,18 @@ project_setup() {
         sudo mkdir -p "$NGINX_DOC_ROOT"
     fi
 
-    # # Take a backup of existing files in the Nginx document root
-    # if [ "$(ls -A "$NGINX_DOC_ROOT")" ]; then
+    # Take a backup of existing files in the Nginx document root
+    if [ "$(ls -A "$NGINX_DOC_ROOT" 2>/dev/null)" ]; then
         echo "Taking backup of existing files in $NGINX_DOC_ROOT..."
         sudo mkdir -p "$BACKUP_DIR"
         TIMESTAMP=$(date +%Y%m%d%H%M%S)
-        sudo cp -r "$NGINX_DOC_ROOT"/* "$BACKUP_DIR/backup_$TIMESTAMP/"
-        echo "Backup completed at $BACKUP_DIR/backup_$TIMESTAMP/"
-    # else
-    #     echo "No existing files to backup in $NGINX_DOC_ROOT."
-    # fi
+        BACKUP_TIMESTAMP_DIR="$BACKUP_DIR/backup_$TIMESTAMP"
+        sudo mkdir -p "$BACKUP_TIMESTAMP_DIR"
+        sudo cp -r "$NGINX_DOC_ROOT"/* "$BACKUP_TIMESTAMP_DIR/"
+        echo "Backup completed at $BACKUP_TIMESTAMP_DIR"
+    else
+        echo "No existing files to backup in $NGINX_DOC_ROOT."
+    fi
 
     # Remove existing files in the Nginx document root
     echo "Clearing existing files in Nginx document root: $NGINX_DOC_ROOT..."
@@ -61,6 +63,7 @@ project_setup() {
 
     # Extract the ZIP file to the temporary directory
     echo "Extracting $ZIP_FILE_PATH to a temporary directory: $TEMP_DIR..."
+    mkdir -p "$TEMP_DIR"
     unzip -o "$ZIP_FILE_PATH" -d "$TEMP_DIR"
 
     # Deploy the extracted files to the Nginx document root
@@ -68,7 +71,7 @@ project_setup() {
     sudo cp -r "$TEMP_DIR/$ZIP_FILE_BASE"/* "$NGINX_DOC_ROOT"
 
     # Clean up the temporary directory
-    # rm -rf "$TEMP_DIR"/*
+    rm -rf "$TEMP_DIR"
 
     # Check if the deployment was successful
     if [ $? -eq 0 ]; then
@@ -88,46 +91,9 @@ project_setup() {
         echo "Failed to restart Nginx. Please check your server configuration."
         exit 1
     fi
-
-	# wget https://www.tooplate.com/zip-templates/2106_soft_landing.zip
-	# unzip 2106_soft_landing.zip
-	# sleep 3s
-	# mv 2106_soft_landing /var/www/html/
-	# #cd webapp
-	# sleep 3s
-	# rm -rf 2106_soft_landing.zip
-	# sleep 3s
-
 }
-<<'COMMENT'
-#docker_setup() {
-	echo "Creating Docker File.........................."
-	sleep 3s	
-	
-	
-	echo "
-			FROM nginx:alpine
-			COPY . /usr/share/nginx/html/
-		" >> Dockerfile
-	sleep 3s	
-	
-	
-	echo "Docker File Created SUCCESSFULLY......................."
-	docker build -t web:03 .
-	sleep 2
-	
-	echo "Image successfully build......................................."
-	sleep 3s
-	
-	echo "Starting Docker Container........................................."
-	sleep 3s
-	docker run -d --rm -p 8083:80 --name webs web:03
-	sleep 3
-}
-COMMENT
+
 echo "************************ DEPLOYMENT STARTED ***************************************"
 package_installation
 project_setup
-#docker_setup
-
-echo "************************ DEPLOYMENT DONE 	*****************************************"
+echo "************************ DEPLOYMENT DONE *****************************************"
