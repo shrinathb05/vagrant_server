@@ -1,5 +1,5 @@
 #!/bin/bash
-
+set -x
 package_installation() {
 	sudo apt update -y
 	sleep 3
@@ -9,8 +9,8 @@ sleep 3s
 project_setup() {
 
     # Variables for paths and URL
-    ZIP_FILE_URL="https://www.tooplate.com/zip-templates/2133_moso_interior.zip"  # Replace with the actual URL of the ZIP file
-    DOWNLOAD_PATH="/home/vagrant/gitlab/web_pages"           # Directory where the file will be downloaded
+    ZIP_FILE_URL="https://www.tooplate.com/zip-templates/2129_crispy_kitchen.zip"  # Replace with the actual URL of the ZIP file
+    DOWNLOAD_PATH="/home/vagrant/Git-Lab/web_pages"           # Directory where the file will be downloaded
     NGINX_DOC_ROOT="/var/www/html"                           # Nginx document root for deployment
     TEMP_DIR="/tmp/webpages"                                 # Temporary directory for extraction
     BACKUP_DIR="/var/www/html_backup"                        # Backup directory for previous files
@@ -44,16 +44,16 @@ project_setup() {
         sudo mkdir -p "$NGINX_DOC_ROOT"
     fi
 
-    # Take a backup of existing files in the Nginx document root
-    if [ "$(ls -A "$NGINX_DOC_ROOT")" ]; then
+    # # Take a backup of existing files in the Nginx document root
+    # if [ "$(ls -A "$NGINX_DOC_ROOT")" ]; then
         echo "Taking backup of existing files in $NGINX_DOC_ROOT..."
         sudo mkdir -p "$BACKUP_DIR"
         TIMESTAMP=$(date +%Y%m%d%H%M%S)
         sudo cp -r "$NGINX_DOC_ROOT"/* "$BACKUP_DIR/backup_$TIMESTAMP/"
         echo "Backup completed at $BACKUP_DIR/backup_$TIMESTAMP/"
-    else
-        echo "No existing files to backup in $NGINX_DOC_ROOT."
-    fi
+    # else
+    #     echo "No existing files to backup in $NGINX_DOC_ROOT."
+    # fi
 
     # Remove existing files in the Nginx document root
     echo "Clearing existing files in Nginx document root: $NGINX_DOC_ROOT..."
