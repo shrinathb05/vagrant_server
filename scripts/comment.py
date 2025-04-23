@@ -27,3 +27,5 @@ third line
 ''')            # This is a paragraph single quotes
 
 print ("Addede new for testing")
+
+print (" I am testing the automated platform for build in jenkins")
