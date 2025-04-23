@@ -29,3 +29,6 @@ third line
 print ("Addede new for testing")
 
 print (" I am testing the automated platform for build in jenkins")
+
+print ("Hi buddy v9")
+
