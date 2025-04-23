@@ -25,3 +25,5 @@ This is a paragraph string
 This is the second line of the paragraph
 third line
 ''')            # This is a paragraph single quotes
+
+print ("Addede new for testing")
